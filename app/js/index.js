@@ -1,7 +1,7 @@
 //==============================================================//
 // Author 		: Ryan Ramage									//
 // Date Created	: Jan 02 2018 									//
-// Version		: 0.1.1 										//
+// Version		: 0.1.2 										//
 // Name 		: DSD List Cleaner 								//
 // Descr 		: This app is designed to 						//
 // 				  look for specific characters inside of 		//
@@ -15,11 +15,21 @@
 //																//
 //==============================================================//
 
+// TODOs
+// 1.) automate formatting of the JSON file
+// 2.) automate turning the JSON file into a CSV.
+// 3.) account for the // (since the dsg sales team has the ability to do ANYTHING, we may have to account for more edge cases in the future.)
+// 4.) DRY the code out.
+// 5.) automate change from csv to JSON
+// 6.) error handling
+// 7.) programatically check headers of csv file for params in sig. 
+	// 7a.) Find a better implementation for additional fields.
+// 8.) Branch and parse CSV file.
 
 
 var fs = require('fs'),
-	list = require('../json/DSO-Email-1_DONE-MMDDYYYY.json'),
-	createJSONObj = '',
+	list = require('../json/DSO-GPS-Calendar.json'),
+	createJSONObj = '', // make object
 	currentDate = new Date(),
 	// containerObj = {'records': []},
 	containerObj = [],
@@ -30,11 +40,17 @@ var fs = require('fs'),
 
 module.exports = function() {
 
-	for(var i = 0; i <= 100; i++) {
+	function turnCSVIntoJSON() {
 
-		var lineItemEmail = list[i].Email,
-			lineItemPracticeName = list[i]['Practice Name'],
-			lineItemDocId = list[i]['Doctor ID'],
+	}
+
+	for(var i = 0; i <= list.length; i++) {
+
+		console.log(i);
+
+		var lineItemEmail = list[i].email,
+			lineItemPracticeName = list[i]['practicename'],
+			// lineItemDocId = list[i]['Doctor ID'],
 			emailStepOne,
 			regExSpace = new RegExp('(\\s+)',["i"]);
 
@@ -56,7 +72,7 @@ module.exports = function() {
 						if(emailStepOne[x] === '') {
 							console.log('skip space ');
 						} else {
-							buildCurrentPlacement(emailStepOne[x],lineItemPracticeName,lineItemDocId);
+							buildCurrentPlacement(emailStepOne[x],lineItemPracticeName/*,lineItemDocId*/);
 						}
 					}
 				}
@@ -67,7 +83,7 @@ module.exports = function() {
 						// strip spaces in string left over from split
 						emailStepOne[y] = emailStepOne[y].replace(' ','');
 						
-						buildCurrentPlacement(emailStepOne[y],lineItemPracticeName,lineItemDocId);
+						buildCurrentPlacement(emailStepOne[y],lineItemPracticeName/*,lineItemDocId*/);
 					}
 				}
 				if(emailStepOne.indexOf(' ') !== -1) {
@@ -83,20 +99,27 @@ module.exports = function() {
 						if(emailStepOne[j] === '') {
 							console.log('skip space ');
 						} else {
-							buildCurrentPlacement(emailStepOne[j],lineItemPracticeName,lineItemDocId);
+							buildCurrentPlacement(emailStepOne[j],lineItemPracticeName/*,lineItemDocId*/);
 						}
 					}					
 				}
 			} 
 			else {
-				buildCurrentPlacement(lineItemEmail,lineItemPracticeName,lineItemDocId);
+				buildCurrentPlacement(lineItemEmail,lineItemPracticeName/*,lineItemDocId*/);
 			}
 
 			function buildCurrentPlacement(emailAddress,practicename,docid) {
 
-				createJSONObj += JSON.stringify({'Email':emailAddress,'Practice Name':practicename,'Doctor ID':docid });
-				createJSONObj = createJSONObj + ',';			
+				if(emailAddress.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) !== null) {
+					createJSONObj += JSON.stringify({'email':emailAddress,'practicename':practicename });
+					createJSONObj = createJSONObj + ',';
+				}
 			};
+
+			if(i >= list.length-1) {
+				createJSONObj = createJSONObj.slice(0,-1);
+				break;
+			}
 	}
 
 	function writeJSONFile(data) {
@@ -112,7 +135,10 @@ module.exports = function() {
 
 		currentDate = getYear + getMonth + getDay;
 
-		fs.writeFile('../json/DSG-Cleaned-List-' + 'currentDate' + '.json', data, function(err) {
+		// Node will strip brackets from array when writing to new file so...
+		data = '[' + data + ']';		
+
+		fs.writeFile('../json/DSG-Cleaned-List-' + currentDate + '.json', data, function(err) {
 			// console.log(data);
 			if(err) {
 				console.log('write to file failed');
