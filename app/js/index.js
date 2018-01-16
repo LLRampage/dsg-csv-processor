@@ -1,7 +1,7 @@
 //==============================================================//
 // Author 		: Ryan Ramage									//
 // Date Created	: Jan 02 2018 									//
-// Version		: 0.1.2 										//
+// Version		: 0.1.4 										//
 // Name 		: DSD List Cleaner 								//
 // Descr 		: This app is designed to 						//
 // 				  look for specific characters inside of 		//
@@ -28,21 +28,14 @@
 
 
 var fs = require('fs'),
-	list = require('../json/DSO-GPS-Calendar.json'),
+	list = require('../json/DSG-SmileBrand.json'),
 	createJSONObj = '', // make object
 	currentDate = new Date(),
-	// containerObj = {'records': []},
-	containerObj = [],
-	dataArray = [],
 	getYear = '',
 	getMonth = currentDate.getMonth()+1,
 	getDay = currentDate.getDate();
 
 module.exports = function() {
-
-	function turnCSVIntoJSON() {
-
-	}
 
 	for(var i = 0; i <= list.length; i++) {
 
@@ -50,16 +43,16 @@ module.exports = function() {
 
 		var lineItemEmail = list[i].email,
 			lineItemPracticeName = list[i]['practicename'],
-			// lineItemDocId = list[i]['Doctor ID'],
+			lineItemDocId = list[i]['doctorid'],
+			lineItemFirstName = list[i]['First Name'],
 			emailStepOne,
-			regExSpace = new RegExp('(\\s+)',["i"]);
+			regExSpace = new RegExp('(\\s+)',["i"])
 
-			// Split spaces.
 			emailStepOne = lineItemEmail;
 
 			// split on semi colon if it exists
 			// TODO DRY Redundant condition
-			if(emailStepOne.indexOf(';') !== -1 || emailStepOne.indexOf(',') !== -1 || emailStepOne.indexOf(' ') !== -1) {
+			// if(emailStepOne.indexOf(';') !== -1 || emailStepOne.indexOf(',') !== -1 || emailStepOne.indexOf(' ') !== -1) {
 
 				if(emailStepOne.indexOf(';') !== -1) {
 					emailStepOne = emailStepOne.split(';');
@@ -72,7 +65,7 @@ module.exports = function() {
 						if(emailStepOne[x] === '') {
 							console.log('skip space ');
 						} else {
-							buildCurrentPlacement(emailStepOne[x],lineItemPracticeName/*,lineItemDocId*/);
+							buildCurrentPlacement(emailStepOne[x],lineItemPracticeName,lineItemDocId);
 						}
 					}
 				}
@@ -83,7 +76,7 @@ module.exports = function() {
 						// strip spaces in string left over from split
 						emailStepOne[y] = emailStepOne[y].replace(' ','');
 						
-						buildCurrentPlacement(emailStepOne[y],lineItemPracticeName/*,lineItemDocId*/);
+						buildCurrentPlacement(emailStepOne[y],lineItemPracticeName,lineItemDocId);
 					}
 				}
 				if(emailStepOne.indexOf(' ') !== -1) {
@@ -99,19 +92,21 @@ module.exports = function() {
 						if(emailStepOne[j] === '') {
 							console.log('skip space ');
 						} else {
-							buildCurrentPlacement(emailStepOne[j],lineItemPracticeName/*,lineItemDocId*/);
+							buildCurrentPlacement(emailStepOne[j],lineItemPracticeName,lineItemDocId);
 						}
 					}					
 				}
+			// }
+			if(emailStepOne.indexOf(';') == -1 || emailStepOne.indexOf(',') == -1 || emailStepOne.indexOf(' ') == -1) {
+				buildCurrentPlacement(lineItemEmail,lineItemPracticeName,lineItemDocId);
 			} 
-			else {
-				buildCurrentPlacement(lineItemEmail,lineItemPracticeName/*,lineItemDocId*/);
-			}
+			// else {
+			// 	buildCurrentPlacement(lineItemEmail,lineItemPracticeName,lineItemDocId);
+			// }
 
-			function buildCurrentPlacement(emailAddress,practicename,docid) {
-
+			function buildCurrentPlacement(emailAddress,practiceName,docid) {
 				if(emailAddress.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) !== null) {
-					createJSONObj += JSON.stringify({'email':emailAddress,'practicename':practicename });
+					createJSONObj += JSON.stringify({'email':emailAddress,'practicename':practiceName,'doctorId':docid });
 					createJSONObj = createJSONObj + ',';
 				}
 			};
