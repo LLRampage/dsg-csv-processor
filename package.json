@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "convert-csv-to-json": "0.0.11"
+    "convert-csv-to-json": "0.0.11",
+    "json2csv": "^3.11.5"
   }
 }
